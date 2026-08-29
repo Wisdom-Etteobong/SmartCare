@@ -1,0 +1,6 @@
+{
+  "name": "SmartCare",
+  "description": "SmartCare Hospital Appointment Management System - Find available doctors, check availability, and schedule appointments to avoid long hospital queues.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
