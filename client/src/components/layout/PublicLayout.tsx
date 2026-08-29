@@ -91,11 +91,11 @@ export const PublicLayout: React.FC = () => {
               </h4>
               <div className="flex items-start gap-3 text-sm text-slate-300">
                 <MapPin className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                <span>450 Medical Center Boulevard, Health Sciences District</span>
+                <span>450 Medical Center Lagos, Health Sciences District</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <Phone className="w-4 h-4 text-teal-400 shrink-0" />
-                <span>+1 (800) 555-CARE (2273)</span>
+                <span>+2349069620583</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <Mail className="w-4 h-4 text-teal-400 shrink-0" />
