@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { User, IUserDocument } from '../models/User';
+import { Doctor } from '../models/Doctor';
 import { isUsingMemoryStore, memoryStore } from '../config/db';
 
 export interface AuthenticatedRequest extends Request {
@@ -34,13 +35,21 @@ export async function authenticateToken(
     const decoded = jwt.verify(token, config.jwtSecret) as { id: string; email: string; role: string; doctorId?: string };
 
     if (isUsingMemoryStore()) {
-      const user = memoryStore.users.find(u => u._id === decoded.id || u.email === decoded.email);
+      const user = memoryStore.users.find(
+        u => u._id === decoded.id || (u.email && decoded.email && u.email.toLowerCase() === decoded.email.toLowerCase())
+      );
       if (!user) {
         res.status(401).json({
           success: false,
           message: 'User account no longer exists.',
         });
         return;
+      }
+      if (user.role === 'doctor' && !user.doctorId) {
+        const doc = memoryStore.doctors.find(
+          d => d.userId === user._id || (d.email && user.email && d.email.toLowerCase() === user.email.toLowerCase())
+        );
+        if (doc) user.doctorId = doc._id;
       }
       req.user = user;
       return next();
@@ -53,6 +62,17 @@ export async function authenticateToken(
         message: 'User account no longer exists.',
       });
       return;
+    }
+
+    if (user.role === 'doctor' && !user.doctorId) {
+      try {
+        const doc = await Doctor.findOne({
+          $or: [{ userId: user._id }, { email: user.email?.toLowerCase() }],
+        });
+        if (doc) user.doctorId = doc._id;
+      } catch {
+        // ignore
+      }
     }
 
     req.user = user;

@@ -36,17 +36,7 @@ export function seedMemoryStore() {
     updatedAt: new Date().toISOString(),
   }));
 
-  // 2. Preload demo patients
-  const patientUsers = initialPatients.map((p, idx) => ({
-    ...p,
-    _id: `user_${idx + 1}`,
-    isActive: true,
-    mustChangePassword: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }));
-
-  // 3. Preload admin users
+  // 2. Preload admin users
   const adminUsers = initialAdminUsers.map((a, idx) => ({
     ...a,
     _id: `admin_${idx + 1}`,
@@ -56,7 +46,7 @@ export function seedMemoryStore() {
     updatedAt: new Date().toISOString(),
   }));
 
-  // 4. Preload doctor user accounts linked to doctor profiles
+  // 3. Preload doctor user accounts linked to doctor profiles
   const doctorUsers = memoryStore.doctors.map((doc, idx) => ({
     _id: `doc_user_${idx + 1}`,
     name: doc.name,
@@ -78,7 +68,8 @@ export function seedMemoryStore() {
     doc.userId = `doc_user_${idx + 1}`;
   });
 
-  memoryStore.users = [...patientUsers, ...adminUsers, ...doctorUsers];
+  // No default patients - all patients register
+  memoryStore.users = [...adminUsers, ...doctorUsers];
 
   const todayStr = new Date().toISOString().split('T')[0];
   const tomorrowDate = new Date(Date.now() + 86400000);
@@ -86,11 +77,16 @@ export function seedMemoryStore() {
   const in3DaysStr = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
   const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-  // 5. Add rich initial appointments assigned to doctors
+  // 4. Add initial clinical consultation appointments assigned to doctors
   memoryStore.appointments = [
     {
       _id: 'apt_1',
-      patient: 'user_1', // Demo Patient
+      patient: 'pat_sample_1',
+      patientName: 'Eleanor Vance',
+      patientEmail: 'eleanor.vance@example.com',
+      patientPhone: '+1 (555) 293-8104',
+      patientGender: 'female',
+      patientBloodGroup: 'A+',
       doctor: 'doc_1',  // Dr. Sarah Johnson (Cardiologist)
       date: todayStr,
       time: '10:00 AM',
@@ -107,7 +103,12 @@ export function seedMemoryStore() {
     },
     {
       _id: 'apt_2',
-      patient: 'user_2', // John Doe
+      patient: 'pat_sample_2',
+      patientName: 'Marcus Sterling',
+      patientEmail: 'marcus.sterling@example.com',
+      patientPhone: '+1 (555) 839-1029',
+      patientGender: 'male',
+      patientBloodGroup: 'O+',
       doctor: 'doc_1',  // Dr. Sarah Johnson
       date: todayStr,
       time: '11:30 AM',
@@ -121,38 +122,50 @@ export function seedMemoryStore() {
     },
     {
       _id: 'apt_3',
-      patient: 'user_3', // Emily Davis
+      patient: 'pat_sample_3',
+      patientName: 'Clara Oswald',
+      patientEmail: 'clara.oswald@example.com',
+      patientPhone: '+1 (555) 472-9182',
+      patientGender: 'female',
+      patientBloodGroup: 'B+',
       doctor: 'doc_1',  // Dr. Sarah Johnson
       date: tomorrowStr,
       time: '02:00 PM',
       reason: 'Follow-up on Holter monitor results',
       type: 'Follow-up',
       status: 'Pending',
-      notes: 'Please review 24hr Holter telemetry report.',
+      notes: 'Wishes to discuss 48-hour monitor findings.',
       doctorNotes: '',
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
       updatedAt: new Date().toISOString(),
     },
     {
       _id: 'apt_4',
-      patient: 'user_1', // Demo Patient
-      doctor: 'doc_2',  // Dr. Michael Williams (GP)
+      patient: 'pat_sample_4',
+      patientName: 'Julian Hayes',
+      patientEmail: 'julian.hayes@example.com',
+      patientPhone: '+1 (555) 910-3847',
+      patientGender: 'male',
+      patientBloodGroup: 'AB+',
+      doctor: 'doc_2',  // Dr. Michael Williams (Neurologist)
       date: todayStr,
-      time: '09:00 AM',
-      reason: 'Annual general wellness checkup and blood test panel',
-      type: 'Routine Checkup',
-      status: 'Completed',
-      notes: 'Fasted for 10 hours prior to visit.',
-      doctorNotes: 'General physical examination normal. CBC and Metabolic Panel drawn. Vital signs within healthy ranges.',
-      diagnosis: 'Routine Health Maintenance',
-      prescription: 'Multivitamin daily, Vitamin D3 2000 IU daily.',
-      followUpDate: in3DaysStr,
+      time: '09:30 AM',
+      reason: 'Chronic migraine consult and MRI brain scan review',
+      type: 'Specialist Evaluation',
+      status: 'Confirmed',
+      notes: 'Experiencing visual aura prior to headache episodes.',
+      doctorNotes: '',
       createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
       updatedAt: new Date().toISOString(),
     },
     {
       _id: 'apt_5',
-      patient: 'user_2', // John Doe
+      patient: 'pat_sample_5',
+      patientName: 'Sophia Lin',
+      patientEmail: 'sophia.lin@example.com',
+      patientPhone: '+1 (555) 604-1823',
+      patientGender: 'female',
+      patientBloodGroup: 'O+',
       doctor: 'doc_2',  // Dr. Michael Williams
       date: tomorrowStr,
       time: '10:30 AM',
@@ -165,7 +178,12 @@ export function seedMemoryStore() {
     },
     {
       _id: 'apt_6',
-      patient: 'user_3', // Emily Davis
+      patient: 'pat_sample_6',
+      patientName: 'Lucas Bennett',
+      patientEmail: 'lucas.bennett@example.com',
+      patientPhone: '+1 (555) 392-7481',
+      patientGender: 'male',
+      patientBloodGroup: 'B+',
       doctor: 'doc_3',  // Dr. Emily Brown (Paediatrician)
       date: todayStr,
       time: '01:30 PM',
@@ -178,7 +196,12 @@ export function seedMemoryStore() {
     },
     {
       _id: 'apt_7',
-      patient: 'user_1', // Demo Patient
+      patient: 'pat_sample_7',
+      patientName: 'Harper Reed',
+      patientEmail: 'harper.reed@example.com',
+      patientPhone: '+1 (555) 819-2047',
+      patientGender: 'female',
+      patientBloodGroup: 'A-',
       doctor: 'doc_4',  // Dr. Daniel Smith (Dermatologist)
       date: yesterdayStr,
       time: '11:00 AM',
@@ -194,14 +217,14 @@ export function seedMemoryStore() {
     },
   ];
 
-  // 6. Preload initial notifications
+  // 5. Preload initial notifications
   memoryStore.notifications = [
     {
       _id: 'notif_1',
       userId: 'doc_user_1', // Dr. Sarah Johnson
       recipientRole: 'doctor',
       title: 'New Appointment Booked',
-      message: 'Demo Patient booked a Cardiology Consultation for today at 10:00 AM.',
+      message: 'Eleanor Vance booked a Cardiology Consultation for today at 10:00 AM.',
       type: 'appointment_booked',
       relatedId: 'apt_1',
       actionUrl: '/doctor/appointments',
@@ -213,7 +236,7 @@ export function seedMemoryStore() {
       userId: 'doc_user_1', // Dr. Sarah Johnson
       recipientRole: 'doctor',
       title: 'Upcoming Patient Visit',
-      message: 'John Doe is scheduled for a Chest tightness evaluation at 11:30 AM.',
+      message: 'Marcus Sterling is scheduled for a Chest tightness evaluation at 11:30 AM.',
       type: 'appointment_reminder',
       relatedId: 'apt_2',
       actionUrl: '/doctor/appointments',
@@ -222,18 +245,6 @@ export function seedMemoryStore() {
     },
     {
       _id: 'notif_3',
-      userId: 'user_1', // Demo Patient
-      recipientRole: 'patient',
-      title: 'Appointment Reminder: Today at 10:00 AM',
-      message: 'Your Cardiology consultation with Dr. Sarah Johnson is scheduled for today at 10:00 AM.',
-      type: 'appointment_reminder',
-      relatedId: 'apt_1',
-      actionUrl: '/appointments/apt_1',
-      isRead: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    },
-    {
-      _id: 'notif_4',
       userId: 'admin_1', // Admin
       recipientRole: 'admin',
       title: 'Hospital Daily Briefing',

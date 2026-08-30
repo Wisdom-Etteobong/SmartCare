@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthToken, removeAuthToken } from '../utils/secureStorage';
 
 // Get API base URL from env or fallback to relative /api
 const getApiBaseUrl = (): string => {
@@ -14,10 +15,10 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor to attach JWT token from localStorage
+// Request interceptor to attach JWT token from secure session storage
 api.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('smartcare_token');
+    const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,10 +38,9 @@ api.interceptors.response.use(
       error.message ||
       'An unexpected network error occurred';
       
-    // If token expired/invalid, clear local token
+    // If token expired/invalid, clear session token securely
     if (error.response?.status === 401 && !error.config.url?.includes('/auth/login')) {
-      localStorage.removeItem('smartcare_token');
-      localStorage.removeItem('smartcare_user');
+      removeAuthToken();
     }
 
     return Promise.reject(new Error(message));

@@ -199,10 +199,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
         </div>
         {navItems.map(item => {
           const Icon = item.icon;
+          const isExact = item.path === '/admin' || item.path === '/dashboard' || item.path === '/doctor/dashboard' || item.path === '/doctors';
           return (
             <NavLink
               key={item.path}
               to={item.path}
+              end={isExact}
               onClick={onCloseMobile}
               className={({ isActive }) =>
                 `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all group ${

@@ -63,7 +63,7 @@ export const LoginPage: React.FC = () => {
       }
 
       // If direct login (e.g. Patient)
-      navigateAfterLogin();
+      navigateAfterLogin(result.user?.role);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Invalid email or password';
       error(msg);
@@ -81,9 +81,9 @@ export const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await verifyOtp({ tempToken, otp: otpCode.trim() });
+      const verifyRes = await verifyOtp({ tempToken, otp: otpCode.trim() });
       success('Two-factor authentication verified successfully!');
-      navigateAfterLogin();
+      navigateAfterLogin(verifyRes.user?.role);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Invalid or expired OTP code';
       error(msg);
@@ -92,17 +92,8 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const navigateAfterLogin = () => {
-    const savedUserStr = localStorage.getItem('smartcare_user');
-    let userRole = 'patient';
-    if (savedUserStr) {
-      try {
-        userRole = JSON.parse(savedUserStr).role || 'patient';
-      } catch {
-        // ignore
-      }
-    }
-
+  const navigateAfterLogin = (role?: string) => {
+    const userRole = role || 'patient';
     let target = state?.from ? `${state.from.pathname}${state.from.search || ''}` : '/dashboard';
     if (!state?.from) {
       if (userRole === 'doctor') target = '/doctor/dashboard';
@@ -277,15 +268,17 @@ export const LoginPage: React.FC = () => {
             </form>
           )}
 
-          <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
-            Need a patient account?{' '}
-            <Link
-              to="/register"
-              state={state}
-              className="text-teal-600 hover:text-teal-700 font-bold underline"
-            >
-              Register as Patient
-            </Link>
+          <div className="pt-2 border-t border-slate-100 space-y-3">
+            <div className="text-center text-xs text-slate-500">
+              Need a patient account?{' '}
+              <Link
+                to="/register"
+                state={state}
+                className="text-teal-600 hover:text-teal-700 font-bold underline"
+              >
+                Register as Patient
+              </Link>
+            </div>
           </div>
         </div>
       </div>

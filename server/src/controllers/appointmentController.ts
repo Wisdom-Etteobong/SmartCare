@@ -1,6 +1,33 @@
 import { Response, NextFunction } from 'express';
 import { AppointmentService } from '../services/appointmentService';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { isUsingMemoryStore, memoryStore } from '../config/db';
+import { Doctor } from '../models/Doctor';
+
+async function resolveDoctorId(req: AuthenticatedRequest): Promise<string | null> {
+  if (req.user?.doctorId) return req.user.doctorId.toString();
+  const userId = (req.user?._id || req.user?.id)?.toString();
+  const userEmail = req.user?.email?.toLowerCase();
+
+  if (isUsingMemoryStore()) {
+    const doc = memoryStore.doctors.find(
+      d => (userId && d.userId === userId) || (userEmail && d.email && d.email.toLowerCase() === userEmail)
+    );
+    if (doc) return doc._id.toString();
+  } else {
+    try {
+      const doc = await Doctor.findOne({
+        $or: [{ userId }, { email: userEmail }],
+      });
+      if (doc) return doc._id.toString();
+    } catch {
+      // ignore
+    }
+  }
+
+  const fallback = req.query?.doctorId || req.body?.doctorId;
+  return fallback ? fallback.toString() : null;
+}
 
 export class AppointmentController {
   static async createAppointment(
@@ -124,7 +151,7 @@ export class AppointmentController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const doctorId = req.user.doctorId || req.query.doctorId;
+      const doctorId = await resolveDoctorId(req);
       if (!doctorId) {
         res.status(400).json({
           success: false,
@@ -159,7 +186,7 @@ export class AppointmentController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const doctorId = req.user.doctorId || req.body.doctorId;
+      const doctorId = await resolveDoctorId(req);
       if (!doctorId) {
         res.status(400).json({
           success: false,
@@ -191,7 +218,7 @@ export class AppointmentController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const doctorId = req.user.doctorId || req.body.doctorId;
+      const doctorId = await resolveDoctorId(req);
       if (!doctorId) {
         res.status(400).json({
           success: false,
@@ -222,7 +249,7 @@ export class AppointmentController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const doctorId = req.user.doctorId || req.query.doctorId;
+      const doctorId = await resolveDoctorId(req);
       if (!doctorId) {
         res.status(400).json({
           success: false,

@@ -19,11 +19,17 @@ export class DoctorService {
     specialty?: string;
     day?: string;
     department?: string;
+    includeInactive?: boolean;
   }): Promise<IDoctor[]> {
-    const { search, specialty, day, department } = filter;
+    const { search, specialty, day, department, includeInactive } = filter;
+    const allowInactive = includeInactive === true;
 
     if (isUsingMemoryStore()) {
       let results = [...memoryStore.doctors];
+
+      if (!allowInactive) {
+        results = results.filter(doc => doc.isActive !== false);
+      }
 
       if (search) {
         const query = search.toLowerCase();
@@ -58,6 +64,10 @@ export class DoctorService {
     }
 
     const query: any = {};
+
+    if (!allowInactive) {
+      query.isActive = { $ne: false };
+    }
 
     if (search) {
       query.$or = [
@@ -255,7 +265,7 @@ export class DoctorService {
     const specialty = rawDoctor.specialty?.trim() || 'General Medicine';
     const department = rawDoctor.department?.trim() || 'General Medicine';
     const yearsOfExperience = Number(rawDoctor.yearsOfExperience) || 5;
-    const consultationFee = Number(rawDoctor.consultationFee) || 60;
+    const consultationFee = Math.max(10000, Number(rawDoctor.consultationFee) || 10000);
     const phone = rawDoctor.phone?.trim() || '+1 (555) 012-3456';
     const profileImage = rawDoctor.profileImage?.trim() || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=600';
     const biography = rawDoctor.biography?.trim() || 'Board-certified medical specialist dedicated to providing comprehensive diagnostic evaluations, evidence-based clinical treatments, and patient-centered healthcare.';
@@ -374,11 +384,14 @@ export class DoctorService {
       };
       memoryStore.doctors[idx] = updated;
 
-      // Sync name / department to user account if exists
-      const userIdx = memoryStore.users.findIndex(u => u.doctorId === doctorId);
+      // Sync name / department / isActive to user account if exists
+      const userIdx = memoryStore.users.findIndex(
+        u => u.doctorId === doctorId || (current.userId && u._id === current.userId)
+      );
       if (userIdx !== -1) {
         if (updates.name) memoryStore.users[userIdx].name = updates.name;
         if (updates.department) memoryStore.users[userIdx].department = updates.department;
+        if (updates.isActive !== undefined) memoryStore.users[userIdx].isActive = updates.isActive;
       }
 
       return updated;
@@ -386,6 +399,23 @@ export class DoctorService {
 
     const updated = await Doctor.findByIdAndUpdate(doctorId, updates, { new: true });
     if (!updated) throw { statusCode: 404, message: 'Doctor not found' };
+
+    if (updates.isActive !== undefined || updates.name || updates.department) {
+      try {
+        const User = require('../models/User').User;
+        const userUpdates: any = {};
+        if (updates.name) userUpdates.name = updates.name;
+        if (updates.department) userUpdates.department = updates.department;
+        if (updates.isActive !== undefined) userUpdates.isActive = updates.isActive;
+        await User.updateMany(
+          { $or: [{ doctorId: updated._id }, { _id: updated.userId }] },
+          { $set: userUpdates }
+        );
+      } catch {
+        // ignore
+      }
+    }
+
     return updated.toObject() as unknown as IDoctor;
   }
 }

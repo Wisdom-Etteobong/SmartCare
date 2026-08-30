@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { IDoctor } from '../../../../package/src/types/doctor';
 import { useAuth } from '../../context/AuthContext';
+import { formatNaira } from '../../utils/currency';
 import { Modal } from '../common/Modal';
 
 interface DoctorCardProps {
@@ -124,7 +125,7 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({ doctor }) => {
             </span>
           </div>
           <div className="font-bold text-slate-900 text-sm">
-            ${doctor.consultationFee || 50}
+            {formatNaira(doctor.consultationFee)}
             <span className="text-[10px] text-slate-400 font-normal"> / visit</span>
           </div>
         </div>

@@ -21,32 +21,49 @@ function generateToken(user: { _id: any; email: string; role: string; doctorId?:
   );
 }
 
-function resolveDoctorProfile(doctorId?: string): any {
-  if (!doctorId) return undefined;
+function resolveDoctorProfile(user: any): any {
   if (isUsingMemoryStore()) {
-    return memoryStore.doctors.find(d => d._id === doctorId);
+    if (user.doctorId) {
+      const doc = memoryStore.doctors.find(d => d._id === user.doctorId);
+      if (doc) return doc;
+    }
+    const userId = user._id?.toString();
+    const email = user.email?.toLowerCase();
+    return memoryStore.doctors.find(
+      d => (userId && d.userId === userId) || (email && d.email && d.email.toLowerCase() === email)
+    );
   }
   return undefined;
 }
 
 async function sanitizeUserAsync(user: any): Promise<IUser> {
-  let doctorProfile = resolveDoctorProfile(user.doctorId?.toString());
+  let doctorProfile = resolveDoctorProfile(user);
 
-  if (!doctorProfile && user.doctorId && !isUsingMemoryStore()) {
+  if (!doctorProfile && user.role === 'doctor' && !isUsingMemoryStore()) {
     try {
-      const doc = await Doctor.findById(user.doctorId).lean();
-      if (doc) doctorProfile = { ...doc, _id: doc._id.toString() };
+      if (user.doctorId) {
+        const doc = await Doctor.findById(user.doctorId).lean();
+        if (doc) doctorProfile = { ...doc, _id: (doc as any)._id.toString() };
+      }
+      if (!doctorProfile) {
+        const doc = await Doctor.findOne({
+          $or: [{ userId: user._id }, { email: user.email?.toLowerCase() }],
+        }).lean();
+        if (doc) doctorProfile = { ...doc, _id: (doc as any)._id.toString() };
+      }
     } catch {
       // doctor fetch fallback
     }
   }
+
+  const effectiveDoctorId = user.doctorId ? user.doctorId.toString() : doctorProfile?._id?.toString();
 
   return {
     _id: user._id.toString(),
     name: user.name,
     email: user.email,
     role: user.role || 'patient',
-    doctorId: user.doctorId ? user.doctorId.toString() : undefined,
+    doctorId: effectiveDoctorId,
     doctorProfile: doctorProfile || undefined,
     phone: user.phone,
     phoneNumber: user.phoneNumber || user.phone,
@@ -54,7 +71,7 @@ async function sanitizeUserAsync(user: any): Promise<IUser> {
     dateOfBirth: user.dateOfBirth,
     bloodGroup: user.bloodGroup,
     address: user.address,
-    department: user.department,
+    department: user.department || doctorProfile?.department,
     emergencyContact: user.emergencyContact,
     mustChangePassword: !!user.mustChangePassword,
     isActive: user.isActive !== false,

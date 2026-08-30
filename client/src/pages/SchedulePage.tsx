@@ -22,6 +22,7 @@ import { IAppointment, AppointmentType } from '../../../package/src/types/appoin
 import { APPOINTMENT_TYPES } from '../../../package/src/constants/appointment';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { fallbackDoctors } from '../data/fallbackDoctors';
+import { formatNaira } from '../utils/currency';
 
 export const SchedulePage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -325,7 +326,7 @@ export const SchedulePage: React.FC = () => {
                       <h4 className="text-sm font-bold text-slate-900 truncate">{doc.name}</h4>
                       <p className="text-xs text-slate-500 truncate">{doc.department}</p>
                       <div className="flex items-center justify-between mt-2 text-xs">
-                        <span className="font-semibold text-slate-700">${doc.consultationFee || 50} / visit</span>
+                        <span className="font-semibold text-slate-700">{formatNaira(doc.consultationFee)} / visit</span>
                         <span className="text-teal-700 font-bold text-[11px]">
                           {doc.availability.length} active days
                         </span>
@@ -576,7 +577,7 @@ export const SchedulePage: React.FC = () => {
 
             <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
               <span>Estimated Hospital Fee:</span>
-              <span className="text-sm text-slate-900 font-black">${selectedDoctor?.consultationFee || 50}</span>
+              <span className="text-sm text-slate-900 font-black">{formatNaira(selectedDoctor?.consultationFee)}</span>
             </div>
           </div>
 

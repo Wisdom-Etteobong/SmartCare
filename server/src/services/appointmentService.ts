@@ -329,12 +329,21 @@ export class AppointmentService {
 
       let populated = list.map(apt => {
         const docObj = memoryStore.doctors.find(d => d._id === (apt.doctor._id || apt.doctor));
-        const patObj = memoryStore.users.find(u => u._id === (apt.patient._id || apt.patient));
+        const patId = (apt.patient?._id || apt.patient)?.toString();
+        const foundUser = memoryStore.users.find(u => u._id === patId);
+        const patObj = foundUser || {
+          _id: patId || 'pat_anon',
+          name: (apt as any).patientName || (apt.patient as any)?.name || 'Registered Patient',
+          email: (apt as any).patientEmail || (apt.patient as any)?.email || 'patient@smartcare.org',
+          phone: (apt as any).patientPhone || (apt.patient as any)?.phone || '+1 (555) 019-2834',
+          gender: (apt as any).patientGender || (apt.patient as any)?.gender || 'female',
+          bloodGroup: (apt as any).patientBloodGroup || (apt.patient as any)?.bloodGroup || 'O+',
+        };
         const transferredFromObj = apt.transferredFrom ? memoryStore.doctors.find(d => d._id === (apt.transferredFrom._id || apt.transferredFrom)) : undefined;
         return {
           ...apt,
           doctor: docObj || apt.doctor,
-          patient: patObj || apt.patient,
+          patient: patObj,
           transferredFrom: transferredFromObj || apt.transferredFrom,
         };
       });
@@ -791,7 +800,7 @@ export class AppointmentService {
     let totalRevenue = 0;
     appointments.forEach(a => {
       if (a.status === 'Completed' || a.status === 'Confirmed') {
-        const fee = (a.doctor as any)?.consultationFee || 75;
+        const fee = (a.doctor as any)?.consultationFee || 10000;
         totalRevenue += fee;
       }
     });

@@ -23,6 +23,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { RescheduleModal } from '../components/appointments/RescheduleModal';
 import { CancelModal } from '../components/appointments/CancelModal';
+import { formatNaira } from '../utils/currency';
 
 export const AppointmentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -198,7 +199,7 @@ export const AppointmentDetailsPage: React.FC = () => {
           <div className="md:col-span-4 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 space-y-1">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Fee Structure</span>
             <p className="text-xl font-extrabold text-slate-900">
-              ${doctor?.consultationFee || 50}
+              {formatNaira(doctor?.consultationFee)}
               <span className="text-xs font-normal text-slate-400"> / visit</span>
             </p>
             <p className="text-[11px] text-teal-700 font-semibold">Covered by Hospital Registration</p>

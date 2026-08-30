@@ -104,7 +104,7 @@ const DoctorSchema = new Schema<IDoctorDocument>(
     },
     consultationFee: {
       type: Number,
-      default: 50,
+      default: 10000,
     },
     rating: {
       type: Number,

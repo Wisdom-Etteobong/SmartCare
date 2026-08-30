@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Modal } from '../components/common/Modal';
 import { fallbackDoctors } from '../data/fallbackDoctors';
+import { formatNaira } from '../utils/currency';
 
 export const DoctorDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -138,7 +139,7 @@ export const DoctorDetailsPage: React.FC = () => {
                 Consultation Fee
               </span>
               <p className="text-2xl font-black text-slate-900">
-                ${doctor.consultationFee || 50}
+                {formatNaira(doctor.consultationFee)}
                 <span className="text-xs font-normal text-slate-400"> / session</span>
               </p>
             </div>

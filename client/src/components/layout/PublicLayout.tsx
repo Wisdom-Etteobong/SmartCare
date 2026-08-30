@@ -95,7 +95,7 @@ export const PublicLayout: React.FC = () => {
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <Phone className="w-4 h-4 text-teal-400 shrink-0" />
-                <span>+2349069620583</span>
+                <span>+2349123456790</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <Mail className="w-4 h-4 text-teal-400 shrink-0" />

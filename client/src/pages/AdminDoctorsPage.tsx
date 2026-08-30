@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   Stethoscope,
   Building,
-  DollarSign,
   Award,
   Calendar,
   Lock,
@@ -27,6 +26,7 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { IDoctor, DayOfWeek } from '../../../package/src/types/doctor';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { formatNaira } from '../utils/currency';
 
 const DEPARTMENTS = [
   'Cardiology',
@@ -59,7 +59,7 @@ export const AdminDoctorsPage: React.FC = () => {
     department: 'Cardiology',
     qualifications: 'MD, FACC',
     yearsOfExperience: 10,
-    consultationFee: 120,
+    consultationFee: 25000,
     phone: '+1 (555) 234-5678',
     roomNumber: 'Suite 302',
     biography: 'Experienced medical practitioner committed to clinical excellence and patient-centered healthcare.',
@@ -79,7 +79,7 @@ export const AdminDoctorsPage: React.FC = () => {
     setLoading(true);
     try {
       const [docRes, usersRes] = await Promise.all([
-        api.get('/doctors'),
+        api.get('/doctors?includeInactive=true'),
         api.get('/auth/admin/users?role=doctor').catch(() => ({ data: { data: { users: [] } } })),
       ]);
 
@@ -375,7 +375,7 @@ export const AdminDoctorsPage: React.FC = () => {
                           <strong>Experience:</strong> {doctor.yearsOfExperience} yrs
                         </span>
                         <span>
-                          <strong>Fee:</strong> ${doctor.consultationFee}
+                          <strong>Fee:</strong> {formatNaira(doctor.consultationFee)}
                         </span>
                         {doctor.roomNumber && (
                           <span>
@@ -549,11 +549,12 @@ export const AdminDoctorsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Consultation Fee ($)
+                    Consultation Fee (₦)
                   </label>
                   <input
                     type="number"
-                    min={0}
+                    min={10000}
+                    step={1000}
                     value={newDoctorForm.consultationFee}
                     onChange={e => setNewDoctorForm(prev => ({ ...prev, consultationFee: Number(e.target.value) }))}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-teal-500 text-sm font-semibold text-slate-800 outline-hidden"
@@ -658,10 +659,12 @@ export const AdminDoctorsPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Consultation Fee ($)
+                    Consultation Fee (₦)
                   </label>
                   <input
                     type="number"
+                    min={10000}
+                    step={1000}
                     value={editingDoctor.consultationFee}
                     onChange={e => setEditingDoctor({ ...editingDoctor, consultationFee: Number(e.target.value) })}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-teal-500 text-sm font-semibold text-slate-800"

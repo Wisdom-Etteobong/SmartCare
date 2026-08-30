@@ -4,12 +4,13 @@ import { DoctorService } from '../services/doctorService';
 export class DoctorController {
   static async getDoctors(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { search, specialty, day, department } = req.query;
+      const { search, specialty, day, department, includeInactive } = req.query;
       const doctors = await DoctorService.getDoctors({
         search: search as string,
         specialty: specialty as string,
         day: day as string,
         department: department as string,
+        includeInactive: String(includeInactive) === 'true',
       });
 
       res.json({

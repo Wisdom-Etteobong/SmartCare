@@ -24,16 +24,6 @@ async function seedDatabase() {
     const createdDoctors = await Doctor.insertMany(initialDoctors);
     console.log(`Successfully seeded ${createdDoctors.length} doctors.`);
 
-    // Insert Patients
-    console.log(`Inserting ${initialPatients.length} demo patient accounts...`);
-    const createdPatients = [];
-    for (const patient of initialPatients) {
-      const user = new User(patient);
-      const saved = await user.save();
-      createdPatients.push(saved);
-      console.log(` Created patient: ${patient.email}`);
-    }
-
     // Insert Admin Users
     console.log(`Inserting ${initialAdminUsers.length} system administrator accounts...`);
     const createdAdmins = [];
@@ -65,44 +55,11 @@ async function seedDatabase() {
       console.log(` Created doctor account: ${docUser.email}`);
     }
 
-    // Insert sample appointments
-    if (createdPatients.length > 0 && createdDoctors.length > 0) {
-      const today = new Date();
-      const futureDate1 = new Date(today.getTime() + 86400000 * 2).toISOString().split('T')[0];
-      const futureDate2 = new Date(today.getTime() + 86400000 * 5).toISOString().split('T')[0];
-
-      await Appointment.create([
-        {
-          patient: createdPatients[0]._id,
-          doctor: createdDoctors[0]._id,
-          date: futureDate1,
-          time: '10:00 AM',
-          reason: 'Routine cardiovascular checkup and blood pressure review',
-          type: 'In-Person Consultation',
-          status: 'Confirmed',
-          notes: 'Patient requested morning consultation.',
-        },
-        {
-          patient: createdPatients[0]._id,
-          doctor: createdDoctors[1]._id,
-          date: futureDate2,
-          time: '02:30 PM',
-          reason: 'Annual health checkup and routine blood tests',
-          type: 'Routine Checkup',
-          status: 'Pending',
-          notes: 'Please bring prior medical history records.',
-        },
-      ]);
-      console.log('Sample appointments created.');
-    }
-
-    console.log('Seeding completed successfully!');
+    console.log('Seeding completed successfully! Note: All patients register directly.');
     console.log('\nDefault Seed Credentials:');
-    console.log('1. Patient Account:  patient@smartcare.org      | Password: Password123!');
-    console.log('2. Patient Account:  john.doe@example.com       | Password: password123');
-    console.log('3. Doctor Account:   sarah.johnson@smartcare.org| Password: Doctor2026!');
-    console.log('4. Doctor Account:   michael.williams@smartcare.org | Password: Doctor2026!');
-    console.log('5. Admin Account:    admin@smartcare.org        | Password: Admin2026!');
+    console.log('1. Doctor Account:   sarah.johnson@smartcare.org| Password: Doctor2026!');
+    console.log('2. Doctor Account:   michael.williams@smartcare.org | Password: Doctor2026!');
+    console.log('3. Admin Account:    admin@smartcare.org        | Password: Admin2026!');
 
     await mongoose.disconnect();
     process.exit(0);

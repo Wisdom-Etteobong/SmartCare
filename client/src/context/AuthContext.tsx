@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import { IUser, LoginDTO, RegisterDTO, UpdateProfileDTO, VerifyOtpDTO } from '../../../package/src/types/user';
+import { getAuthToken, setAuthToken, removeAuthToken } from '../utils/secureStorage';
 
 export interface LoginResult {
   requireOtp?: boolean;
@@ -30,29 +31,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<IUser | null>(() => {
-    const saved = localStorage.getItem('smartcare_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  });
-
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('smartcare_token');
-  });
-
+  // User profile information is securely maintained in memory only (never written to web storage)
+  const [user, setUser] = useState<IUser | null>(null);
+  const [token, setToken] = useState<string | null>(() => getAuthToken());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [mustChangePasswordModalOpen, setMustChangePasswordModalOpen] = useState<boolean>(false);
 
   const refreshUser = useCallback(async () => {
-    const storedToken = localStorage.getItem('smartcare_token');
+    const storedToken = getAuthToken();
     if (!storedToken) {
       setUser(null);
+      setToken(null);
       setIsLoading(false);
       return;
     }
@@ -62,14 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (res.data?.data?.user) {
         const currentUser = res.data.data.user;
         setUser(currentUser);
-        localStorage.setItem('smartcare_user', JSON.stringify(currentUser));
+        setToken(storedToken);
         if (currentUser.mustChangePassword) {
           setMustChangePasswordModalOpen(true);
         }
       }
     } catch {
-      localStorage.removeItem('smartcare_token');
-      localStorage.removeItem('smartcare_user');
+      removeAuthToken();
       setUser(null);
       setToken(null);
     } finally {
@@ -97,8 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { user: loggedInUser, token: authToken, mustChangePassword } = data;
     setUser(loggedInUser);
     setToken(authToken);
-    localStorage.setItem('smartcare_token', authToken);
-    localStorage.setItem('smartcare_user', JSON.stringify(loggedInUser));
+    setAuthToken(authToken);
 
     if (mustChangePassword || loggedInUser?.mustChangePassword) {
       setMustChangePasswordModalOpen(true);
@@ -117,8 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setUser(verifiedUser);
     setToken(authToken);
-    localStorage.setItem('smartcare_token', authToken);
-    localStorage.setItem('smartcare_user', JSON.stringify(verifiedUser));
+    setAuthToken(authToken);
 
     if (mustChangePassword || verifiedUser?.mustChangePassword) {
       setMustChangePasswordModalOpen(true);
@@ -134,7 +120,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await api.post('/auth/change-first-password', { newPassword });
     const updatedUser = res.data.data.user;
     setUser(updatedUser);
-    localStorage.setItem('smartcare_user', JSON.stringify(updatedUser));
     setMustChangePasswordModalOpen(false);
   };
 
@@ -143,8 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { user: registeredUser, token: authToken } = res.data.data;
     setUser(registeredUser);
     setToken(authToken);
-    localStorage.setItem('smartcare_token', authToken);
-    localStorage.setItem('smartcare_user', JSON.stringify(registeredUser));
+    setAuthToken(authToken);
   };
 
   const logout = async () => {
@@ -153,8 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // ignore
     } finally {
-      localStorage.removeItem('smartcare_token');
-      localStorage.removeItem('smartcare_user');
+      removeAuthToken();
       setUser(null);
       setToken(null);
       setMustChangePasswordModalOpen(false);
@@ -165,7 +148,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await api.patch('/auth/profile', data);
     const updatedUser = res.data.data.user;
     setUser(updatedUser);
-    localStorage.setItem('smartcare_user', JSON.stringify(updatedUser));
   };
 
   return (
